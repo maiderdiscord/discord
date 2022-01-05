@@ -6,17 +6,28 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 
 	"golang.org/x/xerrors"
 )
 
 type Discord struct {
+	client   *http.Client
 	Token    string
 	Platform Platform
 }
 
-func New(token string, platform Platform) *Discord {
+func New(token string, platform Platform, proxyURL *url.URL) *Discord {
+	client := new(http.Client)
+
+	if proxyURL != nil {
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
+
 	return &Discord{
+		client:   client,
 		Token:    token,
 		Platform: platform,
 	}
@@ -51,7 +62,7 @@ func (d *Discord) Do(ctx context.Context, method string, path string, requestBod
 
 	req.Header = GetHeaders(d.Token, d.Platform)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := d.client.Do(req)
 	if err != nil {
 		return xerrors.Errorf("failed to send request: %w", err)
 	}
