@@ -14,8 +14,8 @@ type MeResponse struct {
 	AccentColor       *int   `json:"accent_color,omitempty"`
 	Bio               string `json:"bio"`
 	Locale            string `json:"locale"`
-	NsfwAllowed       bool   `json:"nsfw_allowed"`
-	MfaEnabled        bool   `json:"mfa_enabled"`
+	NSFWAllowed       bool   `json:"nsfw_allowed"`
+	MFAEnabled        bool   `json:"mfa_enabled"`
 	PremiumType       int    `json:"premium_type"`
 	Email             string `json:"email"`
 	Verified          bool   `json:"verified"`
