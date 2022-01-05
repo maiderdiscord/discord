@@ -11,6 +11,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
+const discordBaseURL = "https://discord.com"
+
 type Discord struct {
 	client   *http.Client
 	Token    string
@@ -59,7 +61,7 @@ func (d *Discord) Do(ctx context.Context, method string, path string, requestBod
 		requestBodyText = b
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://discord.com"+path, bytes.NewBuffer(requestBodyText))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discordBaseURL+path, bytes.NewBuffer(requestBodyText))
 	if err != nil {
 		return xerrors.Errorf("failed to create request: %w", err)
 	}
