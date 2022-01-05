@@ -6,11 +6,12 @@ type Platform int
 
 const PlatformLinux Platform = iota
 
-func GetHeaders(platform Platform) http.Header {
+func GetHeaders(token string, platform Platform) http.Header {
 	headers := make(http.Header)
 
 	// common headers
 	headers.Add("Content-Type", "application/json")
+	headers.Add("Authorization", token)
 
 	if userAgent := GetUserAgent(platform); len(userAgent) > 0 {
 		headers.Add("User-Agent", userAgent)
