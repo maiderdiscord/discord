@@ -17,7 +17,11 @@ type Discord struct {
 	Platform Platform
 }
 
-func New(token string, platform Platform, proxyURL *url.URL) *Discord {
+func New(token string, platform Platform, proxyURL *url.URL) (*Discord, error) {
+	if !SupportedPlatform(platform) {
+		return nil, xerrors.New("platform is not supported")
+	}
+
 	client := new(http.Client)
 
 	if proxyURL != nil {
@@ -30,7 +34,7 @@ func New(token string, platform Platform, proxyURL *url.URL) *Discord {
 		client:   client,
 		Token:    token,
 		Platform: platform,
-	}
+	}, nil
 }
 
 func (d *Discord) Me(ctx context.Context) (*MeResponse, error) {

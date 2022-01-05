@@ -2,10 +2,6 @@ package discord
 
 import "net/http"
 
-type Platform int
-
-const PlatformLinux Platform = iota
-
 func GetHeaders(token string, platform Platform) http.Header {
 	headers := make(http.Header)
 
