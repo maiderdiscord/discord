@@ -4,14 +4,22 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 
 	"golang.org/x/xerrors"
+	"h12.io/socks"
 )
 
 const discordBaseURL = "https://discord.com"
+
+type ProxyType int
+
+const (
+	ProxyTypeHTTP ProxyType = iota
+	ProxyTypeSOCKS5
+)
 
 type Discord struct {
 	client   *http.Client
@@ -19,16 +27,26 @@ type Discord struct {
 	Platform Platform
 }
 
-func New(token string, platform Platform, proxyURL *url.URL) (*Discord, error) {
+func New(token string, platform Platform, proxy string, proxyType ProxyType) (*Discord, error) {
 	if !SupportedPlatform(platform) {
 		return nil, xerrors.New("platform is not supported")
 	}
 
 	client := new(http.Client)
 
-	if proxyURL != nil {
-		client.Transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+	if proxy != "" {
+		switch proxyType {
+		default:
+		case ProxyTypeHTTP:
+			client.Transport = &http.Transport{
+				Proxy: http.ProxyURL(proxyURL),
+			}
+
+		case ProxyTypeSOCKS5:
+			p := socks.Dial(fmt.Sprintf("socks5://%s", proxy))
+			client.Transport = &http.Transport{
+				Dial: p,
+			}
 		}
 	}
 
