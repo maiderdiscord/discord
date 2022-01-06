@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"golang.org/x/xerrors"
 	"h12.io/socks"
@@ -38,6 +39,11 @@ func New(token string, platform Platform, proxy string, proxyType ProxyType) (*D
 		switch proxyType {
 		default:
 		case ProxyTypeHTTP:
+			proxyURL, err := url.Parse(fmt.Sprintf("http://%s", proxy))
+			if err != nil {
+				return nil, xerrors.Errorf("failed to parse URL: %w", err)
+			}
+
 			client.Transport = &http.Transport{
 				Proxy: http.ProxyURL(proxyURL),
 			}
