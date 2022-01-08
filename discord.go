@@ -66,14 +66,28 @@ func New(token string, platform Platform, proxy string, proxyType ProxyType) (*D
 func (d *Discord) Me(ctx context.Context) (*MeResponse, error) {
 	data := new(MeResponse)
 
-	if err := d.Do(ctx, http.MethodGet, "/api/v9/users/@me", nil, data); err != nil {
+	if err := d.Do(ctx, http.MethodGet, "/api/v9/users/@me", nil, data, "", ""); err != nil {
 		return nil, xerrors.Errorf("failed to get me: %w", err)
 	}
 
 	return data, nil
 }
 
-func (d *Discord) Do(ctx context.Context, method string, path string, requestBody interface{}, result interface{}) error {
+func (d *Discord) AcceptInvite(ctx context.Context, code string) error {
+	data := new(GetInviteResponse)
+
+	if err := d.Do(ctx, http.MethodGet, "/api/v9/invites/"+code, nil, data, "", ""); err != nil {
+		return err
+	}
+
+	if err := d.Do(ctx, http.MethodPost, "/api/v9/invites/"+code, struct{}{}, nil, data.Channel.ID, data.Guild.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Discord) Do(ctx context.Context, method string, path string, requestBody interface{}, result interface{}, channelID, guildID string) error {
 	requestBodyText := make([]byte, 0)
 
 	if requestBody != nil {
@@ -85,12 +99,21 @@ func (d *Discord) Do(ctx context.Context, method string, path string, requestBod
 		requestBodyText = b
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discordBaseURL+path, bytes.NewBuffer(requestBodyText))
+	req, err := http.NewRequestWithContext(ctx, method, discordBaseURL+path, bytes.NewBuffer(requestBodyText))
 	if err != nil {
 		return xerrors.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header = GetHeaders(d.Token, d.Platform)
+
+	if len(channelID) > 0 && len(guildID) > 0 {
+		props, err := GetContentProperties(channelID, guildID)
+		if err != nil {
+			return err
+		}
+		req.Header.Add("X-Content-Properties", props)
+		req.Header.Add("Referer", fmt.Sprintf("https://discordapp.com/channels/%s/%s", channelID, guildID))
+	}
 
 	res, err := d.client.Do(req)
 	if err != nil {

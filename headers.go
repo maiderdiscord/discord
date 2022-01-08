@@ -1,6 +1,10 @@
 package discord
 
-import "net/http"
+import (
+	"encoding/base64"
+	"encoding/json"
+	"net/http"
+)
 
 func GetHeaders(token string, platform Platform) http.Header {
 	headers := make(http.Header)
@@ -38,4 +42,25 @@ func GetSuperProperties(platform Platform) string {
 	}
 
 	return ""
+}
+
+type contentProperties struct {
+	Location            string `json:"location"`
+	LocationGuildID     string `json:"location_guild_id"`
+	LocationChannelID   string `json:"location_channel_id"`
+	LocationChannelType int    `json:"location_channel_type"`
+}
+
+func GetContentProperties(channelID, guildID string) (string, error) {
+	p := &contentProperties{
+		Location:            "Desktop Invite Modal",
+		LocationGuildID:     guildID,
+		LocationChannelID:   channelID,
+		LocationChannelType: 0,
+	}
+	b, err := json.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
 }
