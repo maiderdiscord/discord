@@ -87,6 +87,18 @@ func (d *Discord) AcceptInvite(ctx context.Context, code string) error {
 	return nil
 }
 
+func (d *Discord) LeaveGuild(ctx context.Context, guildID string) error {
+	req := struct {
+		Lurking bool `json:"lurking"`
+	}{
+		Lurking: false,
+	}
+	if err := d.Do(ctx, http.MethodDelete, "/api/v9/users/@me/guilds/"+guildID, req, nil, "", ""); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d *Discord) Do(ctx context.Context, method string, path string, requestBody interface{}, result interface{}, channelID, guildID string) error {
 	requestBodyText := make([]byte, 0)
 
